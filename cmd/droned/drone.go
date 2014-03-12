@@ -67,6 +67,7 @@ func main() {
 
 	// setup database and handlers
 	setupDatabase()
+	discardOldBuilds()
 	setupStatic()
 	setupHandlers()
 
@@ -109,6 +110,22 @@ func setupDatabase() {
 
 	migration := migrate.New(db)
 	migration.All().Migrate()
+}
+
+// discardOldBuilds sets builds that are in the 'Started'
+// state to 'Failure' on startup. The assumption is that
+// the drone process was shut down mid-build and thus the
+// builds will never complete.
+func discardOldBuilds() {
+	err := database.FailStartedBuilds()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = database.FailStartedCommits()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // setup routes for static assets. These assets may

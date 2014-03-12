@@ -68,5 +68,11 @@ func (b *Build) FinishedString() string {
 // Returns true if the Build statis is Started
 // or Pending, indicating it is currently running.
 func (b *Build) IsRunning() bool {
-	return (b.Status == StatusStarted || b.Status == StatusEnqueue)
+	return (b.Status == StatusStarted)
+}
+
+// HasFinished covers all cases where the build
+// will no longer change
+func (b *Build) HasFinished() bool {
+	return (b.Status == "Success" || b.Status == "Failure" || b.Status == "Error")
 }

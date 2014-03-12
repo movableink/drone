@@ -32,7 +32,7 @@
 				<dt>Started</dt>
 				<dd><span class="timeago" title="{{ .Build.StartedString }}"></span></dd>
 				<dt>Duration</dt>
-				<dd>{{ if .Build.IsRunning }}--{{else}}{{ .Build.HumanDuration }}{{end}}</dd>
+				<dd>{{ if not .Build.HasFinished }}--{{else}}{{ .Build.HumanDuration }}{{end}}</dd>
 			</div>
 			<img src="{{.Commit.Image}}">
 			<div class="commit-summary">

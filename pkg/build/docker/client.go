@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -134,6 +135,11 @@ func (c *Client) do(method, path string, in, out interface{}) error {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if Logging {
+		log.Printf("Docker Client %s %s - %d", method, path, resp.StatusCode)
+		log.Printf("Response: %s", body)
 	}
 
 	// Check for an http error status (ie not 200 StatusOK)

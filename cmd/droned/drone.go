@@ -128,6 +128,30 @@ func discardOldBuilds() {
 	}
 }
 
+func requeuePendingBuilds(queue queue.Queue) {
+	builds, err := database.ListPendingBuilds()
+
+	for _, build := range builds {
+		commit, err := database.GetCommit(build.CommitID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		repo, err := database.GetRepo(commit.RepoID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		buildscript, err := handler.fetchBuildScript(repo, commit)
+		if err != nil {
+			return err
+		}
+
+		queue.Add(queue.BuildTask{Repo: repo, Commit: commit, Build: build, Script: buildscript})
+
+  }
+}
+
 // setup routes for static assets. These assets may
 // be directly embedded inside the application using
 // the `rice embed` command, else they are served from disk.
@@ -153,6 +177,7 @@ func setupStatic() {
 func setupHandlers() {
 	queueRunner := queue.NewBuildRunner(docker.New(), timeout)
 	queue := queue.Start(runtime.NumCPU(), queueRunner)
+	requeuePendingBuilds(queue)
 
 	hookHandler          := handler.NewHookHandler(queue)
 	commitRebuildHandler := handler.NewCommitRebuildHandler(queue)

@@ -103,7 +103,7 @@ func (r *Repo) Commands() []string {
 	}
 
 	cmds := []string{}
-	cmds = append(cmds, fmt.Sprintf("git clone --depth=%d --recursive --branch=%s %s %s", r.Depth, branch, r.Path, r.Dir))
+	cmds = append(cmds, fmt.Sprintf("git clone --verbose --depth=%d --recursive --branch=%s %s %s", r.Depth, branch, r.Path, r.Dir))
 
 	switch {
 	// if a specific commit is provided then we'll

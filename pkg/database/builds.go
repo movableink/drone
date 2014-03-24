@@ -16,14 +16,6 @@ WHERE commit_id = ?
 ORDER BY slug ASC
 `
 
-// SQL Queries to retrieve a list of all Commits in the pending state.
-const pendingBuildStmt = `
-SELECT id, commit_id, slug, status, started, finished, duration, created, updated, stdout
-FROM builds
-WHERE status = 'Pending'
-ORDER BY id ASC
-`
-
 // SQL Queries to retrieve a Build by id.
 const buildFindStmt = `
 SELECT id, commit_id, slug, status, started, finished, duration, created, updated, stdout
@@ -82,12 +74,6 @@ func DeleteBuild(id int64) error {
 func ListBuilds(id int64) ([]*Build, error) {
 	var builds []*Build
 	err := meddler.QueryAll(db, &builds, buildStmt, id)
-	return builds, err
-}
-
-func ListPendingBuilds() ([]*Build, error) {
-	var builds []*Build
-	err := meddler.QueryAll(db, &builds, pendingBuildStmt)
 	return builds, err
 }
 

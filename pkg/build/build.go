@@ -316,12 +316,18 @@ func (b *Builder) run() error {
 		AttachStdin:  false,
 		AttachStdout: true,
 		AttachStderr: true,
+		ExposedPorts: make(map[docker.Port]struct{}),
 	}
 
 	// configure if Docker should run in privileged mode
 	host := docker.HostConfig{
 		Privileged: (b.Privileged && len(b.Repo.PR) == 0),
+  	PortBindings: make(map[docker.Port][]docker.PortBinding),
 	}
+
+  conf.ExposedPorts[docker.Port(b.Build.Port)] = struct{}{}
+
+	host.PortBindings[docker.Port(b.Build.Port)] = []docker.PortBinding{{HostIp: "127.0.0.1", HostPort: "8888"}}
 
 	// debugging
 	log.Noticef("starting build %s", b.Build.Name)
@@ -432,7 +438,7 @@ func (b *Builder) writeDockerfile(dir string) error {
 	}
 
 	switch {
-	case strings.HasPrefix(b.Build.Image, "bradrydzewski/"),
+		case strings.HasPrefix(b.Build.Image, "bradrydzewski/"),
 		strings.HasPrefix(b.Build.Image, "drone/"):
 		// the default user for all official Drone imnage
 		// is the "ubuntu" user, since all build images

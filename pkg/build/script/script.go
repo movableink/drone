@@ -52,6 +52,9 @@ type Build struct {
 	// to identify the build.
 	Name string
 
+	// HTTP port that the build exposes
+	Port string
+
 	// Script specifies the build and test commands.
 	Script []string
 

@@ -117,11 +117,6 @@ func (b *Builder) Run() error {
 	select {
 	case err := <-c:
 		return err
-	case <-time.After(b.Timeout):
-		log.Errf("time limit exceeded for build %s", b.Build.Name)
-		b.BuildState.ExitCode = 124
-		b.BuildState.Finished = time.Now().UTC().Unix()
-		return nil
 	}
 }
 

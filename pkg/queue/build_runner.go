@@ -11,7 +11,7 @@ import (
 )
 
 type BuildRunner interface {
-	Run(buildScript *script.Build, repo *repo.Repo, key []byte, privileged bool, buildOutput io.Writer) (success bool, err error)
+	Run(buildScript *script.Build, repo *repo.Repo, key []byte, privileged bool, port string, buildOutput io.Writer) (success bool, err error)
 }
 
 type buildRunner struct {
@@ -26,11 +26,12 @@ func NewBuildRunner(dockerClient *docker.Client, timeout time.Duration) BuildRun
 	}
 }
 
-func (runner *buildRunner) Run(buildScript *script.Build, repo *repo.Repo, key []byte, privileged bool, buildOutput io.Writer) (bool, error) {
+func (runner *buildRunner) Run(buildScript *script.Build, repo *repo.Repo, key []byte, privileged bool, port string, buildOutput io.Writer) (bool, error) {
 	builder := build.New(runner.dockerClient)
 	builder.Build = buildScript
 	builder.Repo = repo
 	builder.Key = key
+	builder.Port = port
 	builder.Privileged = privileged
 	builder.Stdout = buildOutput
 	builder.Timeout = runner.timeout

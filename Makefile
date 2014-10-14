@@ -88,7 +88,7 @@ dpkg:
 	-dpkg-deb --build deb/drone
 
 run:
-	bin/droned --port=":8080" --datasource="drone.sqlite"
+	bin/droned --port=":8080" --datasource="drone.sqlite" --workers="8"
 
 godep:
 	go get github.com/tools/godep

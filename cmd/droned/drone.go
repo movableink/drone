@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"regexp"
 	"strings"
 	"time"
 
@@ -51,6 +52,29 @@ var (
 	secret string
 )
 
+type VHostMiddleware struct {
+	handler http.Handler
+}
+
+func (m *VHostMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	hostname := strings.Split(r.Host, ":")[0]
+	pieces := strings.Split(hostname, ".")
+	isIp := regexp.MustCompile(`^[\.\d]+$`).MatchString(hostname)
+
+	if len(pieces) > 2 && !isIp {
+		subdomain := pieces[0]
+
+		if subdomain == "all" {
+  		w.Write([]byte(subdomain))
+		} else {
+			prProxy := handler.NewPRHandler(subdomain)
+			prProxy.ServeHTTP(w, r)
+		}
+	} else {
+		m.handler.ServeHTTP(w, r)
+	}
+}
+
 func main() {
 	// parse command line flags
 	flag.StringVar(&port, "port", ":8080", "")
@@ -78,11 +102,13 @@ func main() {
 	// debug
 	log.Printf("starting drone version %s on port %s\n", version, port)
 
+  vhost := &VHostMiddleware{http.DefaultServeMux}
+
 	// start webserver using HTTPS or HTTP
 	if sslcert != "" && sslkey != "" {
 		panic(http.ListenAndServeTLS(port, sslcert, sslkey, nil))
 	} else {
-		panic(http.ListenAndServe(port, nil))
+		panic(http.ListenAndServe(port, vhost))
 	}
 }
 

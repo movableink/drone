@@ -71,6 +71,9 @@ type Builder struct {
 	// to the null device (os.DevNull).
 	Stdout io.Writer
 
+	// Port is the host port that will be exposed by the build
+	Port string
+
 	// BuildState contains information about an exited build,
 	// available after a call to Run.
 	BuildState *BuildState
@@ -327,7 +330,7 @@ func (b *Builder) run() error {
 
   conf.ExposedPorts[docker.Port(b.Build.Port)] = struct{}{}
 
-	host.PortBindings[docker.Port(b.Build.Port)] = []docker.PortBinding{{HostIp: "127.0.0.1", HostPort: "8888"}}
+	host.PortBindings[docker.Port(b.Build.Port)] = []docker.PortBinding{{HostIp: "127.0.0.1", HostPort: b.Port}}
 
 	// debugging
 	log.Noticef("starting build %s", b.Build.Name)

@@ -26,6 +26,7 @@ type Build struct {
 	Updated     time.Time `meddler:"updated,utctime"  json:"updated"`
 	Stdout      string    `meddler:"stdout"           json:"-"`
 	BuildScript string    `meddler:"buildscript"      json:"-"`
+	Port        string    `meddler:"port"             json:"port"`
 }
 
 // HumanDuration returns a human-readable approximation of a duration

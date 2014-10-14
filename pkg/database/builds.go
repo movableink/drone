@@ -44,6 +44,26 @@ const buildDeleteStmt = `
 DELETE FROM builds WHERE id = ?
 `
 
+// SQL Queries to find a build by pull request id
+const buildFindRunningBranchStmt = `
+SELECT builds.id, builds.commit_id, builds.slug, builds.status, builds.started,
+builds.finished, builds.duration, builds.created, builds.updated, builds.stdout,
+builds.buildscript, builds.port
+FROM builds, commits
+WHERE builds.commit_id = commits.id
+AND commits.branch = ?
+AND builds.status = ?
+ORDER BY commits.created DESC
+LIMIT 1
+`
+
+// Returns the Build with the given pull request ID.
+func GetRunningBuildByBranch(branch string) (*Build, error) {
+	build := Build{}
+	err := meddler.QueryRow(db, &build, buildFindRunningBranchStmt, branch, "Started")
+	return &build, err
+}
+
 // Returns the Build with the given ID.
 func GetBuild(id int64) (*Build, error) {
 	build := Build{}

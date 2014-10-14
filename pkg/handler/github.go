@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"math/rand"
 
 	"github.com/drone/drone/pkg/database"
 	. "github.com/drone/drone/pkg/model"
@@ -36,6 +37,8 @@ func (h *GithubHandler) Hook(w http.ResponseWriter, r *http.Request) error {
 		h.PullRequestHook(w, r)
 		return nil
 	}
+
+	println("HOOK")
 
 	// get the payload of the message
 	// this should contain a json representation of the
@@ -120,9 +123,9 @@ func (h *GithubHandler) Hook(w http.ResponseWriter, r *http.Request) error {
 	client := github.New(user.GithubToken)
 	client.ApiUrl = settings.GitHubApiUrl
 
-	content, err := client.Contents.FindRef(repo.Owner, repo.Name, ".drone.yml", commit.Hash)
+	content, err := client.Contents.FindRef(repo.Owner, repo.Name, ".ydra.yml", commit.Hash)
 	if err != nil {
-		msg := "No .drone.yml was found in this repository.  You need to add one.\n"
+		msg := "No .ydra.yml was found in this repository.  You need to add one.\n"
 		if err := saveFailedBuild(commit, msg); err != nil {
 			return RenderText(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
@@ -140,12 +143,16 @@ func (h *GithubHandler) Hook(w http.ResponseWriter, r *http.Request) error {
 		return RenderText(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
+  rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	portNum := rnd.Intn(10000)
+
 	// save the build to the database
 	build := &Build{}
 	build.Slug = "1" // TODO
 	build.CommitID = commit.ID
 	build.Created = time.Now().UTC()
 	build.Status = "Pending"
+	build.Port = strconv.Itoa(portNum + 40000)
 	build.BuildScript = string(buildscript)
 	if err := database.SaveBuild(build); err != nil {
 		return RenderText(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -199,14 +206,6 @@ func (h *GithubHandler) PullRequestHook(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Verify that the commit doesn't already exist.
-	// We should enver build the same commit twice.
-	_, err = database.GetCommitHash(hook.PullRequest.Head.Sha, repo.ID)
-	if err != nil && err != sql.ErrNoRows {
-		RenderText(w, http.StatusText(http.StatusBadGateway), http.StatusBadGateway)
-		return
-	}
-
 	///////////////////////////////////////////////////////
 
 	commit := &Commit{}
@@ -228,7 +227,7 @@ func (h *GithubHandler) PullRequestHook(w http.ResponseWriter, r *http.Request) 
 	client := github.New(user.GithubToken)
 	client.ApiUrl = settings.GitHubApiUrl
 
-	content, err := client.Contents.FindRef(repo.Owner, repo.Name, ".drone.yml", commit.Hash) // TODO should this really be the hash??
+	content, err := client.Contents.FindRef(repo.Owner, repo.Name, ".ydra.yml", commit.Hash) // TODO should this really be the hash??
 	if err != nil {
 		println(err.Error())
 		RenderText(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -248,12 +247,16 @@ func (h *GithubHandler) PullRequestHook(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+  rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	portNum := rnd.Intn(10000)
+
 	// save the build to the database
 	build := &Build{}
 	build.Slug = "1" // TODO
 	build.CommitID = commit.ID
 	build.Created = time.Now().UTC()
 	build.Status = "Pending"
+	build.Port = strconv.Itoa(portNum + 40000)
 	build.BuildScript = string(buildscript)
 	if err := database.SaveBuild(build); err != nil {
 		RenderText(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
